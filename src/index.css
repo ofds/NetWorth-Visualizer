@@ -1,0 +1,118 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --color-nw-accent: #2dd4bf;
+  --color-nw-accent-muted: rgba(45, 212, 191, 0.45);
+}
+
+html {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+  max-height: 100dvh;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  color: #e2e8f0;
+  background-color: #020617;
+  background-image:
+    radial-gradient(ellipse 90% 55% at 50% -15%, rgba(45, 212, 191, 0.09), transparent 55%),
+    radial-gradient(ellipse 50% 45% at 100% 40%, rgba(245, 158, 11, 0.06), transparent 50%),
+    radial-gradient(ellipse 45% 35% at 0% 85%, rgba(59, 130, 246, 0.07), transparent 45%),
+    radial-gradient(ellipse 120% 80% at 50% 100%, rgba(15, 23, 42, 0.9), #020617);
+  background-attachment: fixed;
+}
+
+#root {
+  height: 100%;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.font-display {
+  font-family: var(--font-sans);
+  letter-spacing: -0.02em;
+}
+
+.font-figures {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/**
+ * Graph tooltip scroll areas: avoid overlay scrollbars that widen on hover (common on Windows
+ * Chromium/Edge) and cover content. Fixed track + thin thumb; reserve gutter when supported.
+ */
+.nw-graph-tooltip-scroll {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.48) transparent;
+}
+
+.nw-graph-tooltip-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.nw-graph-tooltip-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.nw-graph-tooltip-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 116, 139, 0.4);
+  border-radius: 9999px;
+}
+
+.nw-graph-tooltip-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 116, 139, 0.62);
+}
+
+.nw-graph-tooltip-scroll-x {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.48) transparent;
+}
+
+.nw-graph-tooltip-scroll-x::-webkit-scrollbar {
+  height: 6px;
+}
+
+.nw-graph-tooltip-scroll-x::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.nw-graph-tooltip-scroll-x::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 116, 139, 0.4);
+  border-radius: 9999px;
+}
+
+.nw-graph-tooltip-scroll-x::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 116, 139, 0.62);
+}
+
+/** Per-digit “odometer” tick when currency amount changes (runs on every digit, not only changing columns). */
+@keyframes nw-digit-tick {
+  0% {
+    transform: translateY(0);
+    filter: brightness(1);
+  }
+  40% {
+    transform: translateY(-22%);
+    filter: brightness(1.12);
+  }
+  75% {
+    transform: translateY(5%);
+  }
+  100% {
+    transform: translateY(0);
+    filter: brightness(1);
+  }
+}
+
+.nw-digit-roll {
+  animation: nw-digit-tick 0.34s cubic-bezier(0.34, 1.45, 0.64, 1) both;
+}

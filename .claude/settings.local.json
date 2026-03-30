@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find 'C:\\\\Users\\\\ofds2\\\\Desktop\\\\Codigos\\\\SPAs\\\\NetWorth Visualizer' -not -path */node_modules/* -not -path */dist/* -type f)",
+      "Bash(npm test:*)",
+      "Bash(npm run:*)",
+      "Bash(npx playwright:*)",
+      "Bash(find 'C:\\\\Users\\\\ofds2\\\\Desktop\\\\Codigos\\\\SPAs\\\\NetWorth Visualizer/src' -type f \\\\\\(-name *.tsx -o -name *.ts -o -name *.css \\\\\\))"
+    ]
+  }
+}
