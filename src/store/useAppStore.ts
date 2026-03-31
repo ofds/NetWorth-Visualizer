@@ -18,7 +18,9 @@ function newIdForKind(kind: FinancialEvent['kind']): string {
           ? 'home'
           : kind === 'life'
             ? 'life'
-            : 'macro'
+            : kind === 'windfall'
+              ? 'windfall'
+              : 'macro'
   return nextEventId(prefix)
 }
 

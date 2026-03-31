@@ -53,6 +53,13 @@ export function EventCarousel({ selected, onSelect, highlightCue }: Props) {
         color: eventTypeColors.life,
       },
       {
+        type: 'windfall',
+        label: t('carousel.windfall.label'),
+        description: t('carousel.windfall.desc'),
+        emoji: '🎁',
+        color: eventTypeColors.windfall,
+      },
+      {
         type: 'macro',
         label: t('carousel.macro.label'),
         description: t('carousel.macro.desc'),

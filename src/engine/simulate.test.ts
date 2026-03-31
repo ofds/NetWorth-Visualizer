@@ -574,4 +574,58 @@ describe('simulate', () => {
     expect(out[0]!.totalExpenses).toBe(0)
     expect(out[0]!.savingsPool).toBeCloseTo(20_000 - 1_000, 5)
   })
+
+  it('credits windfall to savings pool once on start month (before asset down payment)', () => {
+    const windfall = {
+      kind: 'windfall' as const,
+      id: 'wf-1',
+      startMonth: 0,
+      endMonth: 0,
+      name: 'Inheritance',
+      amount: 100_000,
+    }
+    const home = {
+      kind: 'asset_liability' as const,
+      id: 'home-after-windfall',
+      startMonth: 0,
+      endMonth: null,
+      name: 'Home',
+      mode: 'asset' as const,
+      principal: 400_000,
+      downPayment: 80_000,
+      annualApr: 0,
+      termYears: 30,
+      monthlyPaymentOverride: null,
+      annualValueChangeRate: 0,
+    }
+    const out = simulate([windfall, home], new Date(), 1, {
+      baseMonthlyExpenses: 0,
+      initialLiquid: 0,
+      initialSavingsPool: 0,
+      defaultAnnualInflation: 0,
+    })
+    expect(out[0]!.poolWindfallTotal).toBe(100_000)
+    expect(out[0]!.poolAssetDownPaymentsTotal).toBe(80_000)
+    expect(out[0]!.savingsPool).toBeCloseTo(20_000, 5)
+  })
+
+  it('credits windfall only on start month', () => {
+    const windfall = {
+      kind: 'windfall' as const,
+      id: 'wf-2',
+      startMonth: 1,
+      endMonth: 1,
+      name: 'Gift',
+      amount: 25_000,
+    }
+    const out = simulate([windfall], new Date(), 3, {
+      baseMonthlyExpenses: 0,
+      initialLiquid: 0,
+      initialSavingsPool: 0,
+      defaultAnnualInflation: 0,
+    })
+    expect(out[0]!.poolWindfallTotal).toBe(0)
+    expect(out[1]!.poolWindfallTotal).toBe(25_000)
+    expect(out[2]!.poolWindfallTotal).toBe(0)
+  })
 })

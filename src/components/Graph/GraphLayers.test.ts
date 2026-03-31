@@ -25,6 +25,7 @@ function ms(m: number, nw: number, rnw: number): MonthSnapshot {
     loanPaymentsTotal: 0,
     monthlySavings: 0,
     poolIncomeDeposit: 0,
+    poolWindfallTotal: 0,
     poolAssetDownPaymentsTotal: 0,
     poolDeficitCoverTotal: 0,
     poolLoanPaymentsTotal: 0,

@@ -1,10 +1,11 @@
-/** Discriminator for the five initial event families — architecture §3 */
+/** Discriminator for event families — architecture §3 */
 export type EventType =
   | 'career'
   | 'asset_liability'
   | 'investment'
   | 'life'
   | 'macro'
+  | 'windfall'
 
 export type FinancialEventBase = {
   id: string
@@ -100,12 +101,21 @@ export type MacroEnvironmentEvent = FinancialEventBase & {
   severity: number
 }
 
+/** One-time cash to the savings pool (reserve) — inheritance, gift, legal settlement, etc. */
+export type WindfallEvent = FinancialEventBase & {
+  kind: 'windfall'
+  name: string
+  /** Nominal amount credited to the pool in `startMonth` (same month as placement). */
+  amount: number
+}
+
 export type FinancialEvent =
   | CareerEvent
   | AssetLiabilityEvent
   | InvestmentEvent
   | LifeImpactEvent
   | MacroEnvironmentEvent
+  | WindfallEvent
 
 export function eventTypeFromKind(kind: FinancialEvent['kind']): EventType {
   if (kind === 'asset_liability') return 'asset_liability'

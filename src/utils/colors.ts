@@ -9,6 +9,8 @@ export const eventTypeColors = {
   investment: '#3B82F6',
   life: '#8B5CF6',
   macro: '#64748B',
+  /** Lump-sum to reserve — distinct from investment blue */
+  windfall: '#06B6D4',
 } as const
 
 /** Primary UI / graph accent (teal) — replaces generic sky defaults. */
@@ -53,6 +55,8 @@ export function eventColorFor(e: FinancialEvent): string {
       return eventTypeColors.life
     case 'macro':
       return eventTypeColors.macro
+    case 'windfall':
+      return eventTypeColors.windfall
     case 'asset_liability':
       return e.mode === 'liability' ? eventTypeColors.liability : eventTypeColors.asset
   }

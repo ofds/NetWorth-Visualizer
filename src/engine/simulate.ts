@@ -355,6 +355,7 @@ export function simulate(
     const assetDownPaymentShortfallByEvent: Record<string, number> = {}
     let poolIncomeDeposit = 0
     let poolDeficitCoverTotal = 0
+    let poolWindfallTotal = 0
 
     for (const e of active) {
       if (e.kind === 'life' && e.monthlyExpenseChange !== 0) {
@@ -384,6 +385,16 @@ export function simulate(
         poolDeficitCoverTotal = deficit
         savingsPool = priorPool - deficit
       }
+    }
+
+    // —— Windfall: one-time credit to reserve (inheritance, gift, etc.) — before asset down payments. ——
+    for (const e of sorted) {
+      if (e.kind !== 'windfall' || e.startMonth !== m) continue
+      const amt = Math.max(0, e.amount)
+      if (amt <= 0) continue
+      savingsPool += amt
+      poolWindfallTotal += amt
+      mergeLedger(ledger, e.id, amt)
     }
 
     // —— Asset down payment (>0): after this month’s surplus → pool (same month’s income is
@@ -545,6 +556,7 @@ export function simulate(
       loanPaymentsTotal: loanPaymentTotal,
       monthlySavings,
       poolIncomeDeposit,
+      poolWindfallTotal,
       poolAssetDownPaymentsTotal,
       poolDeficitCoverTotal,
       poolLoanPaymentsTotal,

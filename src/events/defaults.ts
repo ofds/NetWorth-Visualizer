@@ -6,6 +6,7 @@ import type {
   InvestmentEvent,
   LifeImpactEvent,
   MacroEnvironmentEvent,
+  WindfallEvent,
 } from './types'
 
 /** i18n keys used for default event names (see `en.json` / `pt-BR.json` `defaults`). */
@@ -15,6 +16,7 @@ export const DEFAULT_EVENT_NAME_KEY: Record<FinancialEvent['kind'], string> = {
   investment: 'defaults.investment',
   life: 'defaults.life',
   macro: 'defaults.macro',
+  windfall: 'defaults.windfall',
 }
 
 export function defaultEventNameI18nKey(kind: FinancialEvent['kind']): string {
@@ -107,6 +109,17 @@ export function createDefaultMacroEvent(startMonth = 0): MacroEnvironmentEvent {
   }
 }
 
+export function createDefaultWindfallEvent(startMonth = 0): WindfallEvent {
+  return {
+    kind: 'windfall',
+    id: nextEventId('windfall'),
+    startMonth,
+    endMonth: startMonth,
+    name: i18n.t(DEFAULT_EVENT_NAME_KEY.windfall),
+    amount: 50_000,
+  }
+}
+
 export function createDefaultEventForType(
   type: FinancialEvent['kind'],
   startMonth = 0,
@@ -122,5 +135,7 @@ export function createDefaultEventForType(
       return createDefaultLifeEvent(startMonth)
     case 'macro':
       return createDefaultMacroEvent(startMonth)
+    case 'windfall':
+      return createDefaultWindfallEvent(startMonth)
   }
 }

@@ -12,6 +12,7 @@ function snap(month: number, netWorth: number): MonthSnapshot {
     loanPaymentsTotal: 0,
     monthlySavings: 0,
     poolIncomeDeposit: 0,
+    poolWindfallTotal: 0,
     poolAssetDownPaymentsTotal: 0,
     poolDeficitCoverTotal: 0,
     poolLoanPaymentsTotal: 0,

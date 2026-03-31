@@ -44,6 +44,10 @@
     "assetLoan": { "label": "Ativo / Dívida", "desc": "Casa, carro, financiamento" },
     "investment": { "label": "Investimento", "desc": "Carteira e aportes" },
     "life": { "label": "Vida", "desc": "Gastos e choques de renda" },
+    "windfall": {
+      "label": "Herança / presente",
+      "desc": "Valor único direto na reserva (poupança)"
+    },
     "macro": { "label": "Macro", "desc": "Inflação e regime de mercado" }
   },
   "kpi": {
@@ -64,6 +68,7 @@
       "contributions": "Aportes",
       "growthHorizon": "Crescimento e horizonte",
       "lifeImpact": "Impacto na vida",
+      "windfall": "Herança ou valor único",
       "macro": "Macro"
     },
     "name": "Nome",
@@ -177,6 +182,10 @@
       "addCareerHint": "Adicione um evento de carreira para definir R$/mês",
       "duration": "Duração"
     },
+    "windfall": {
+      "amount": "Valor para a reserva",
+      "hint": "Crédito único na reserva no mês de início (herança, presente, acordo). Não vai direto a investimentos — só se você financiar investimentos pela reserva depois."
+    },
     "macro": {
       "inflationYr": "Inflação / ano",
       "hintInflation": "Arraste o gasto anual extra pela inflação em um exemplo de R$ 12 mil/ano; o % atualiza.",
@@ -212,6 +221,7 @@
     "poolFlowOutHeader": "Saídas",
     "poolFlowInterest": "Juros da reserva",
     "poolFlowIncomeDeposit": "Renda para a reserva",
+    "poolFlowWindfall": "Valor único na reserva",
     "poolFlowFundingInvestments": "Para investimentos",
     "poolFlowAssetDownPayment": "Entrada em ativo",
     "poolFlowLoanPayments": "Parcelas do empréstimo",
@@ -269,6 +279,7 @@
     "career": "Carreira",
     "investment": "Investimento",
     "life": "Vida",
+    "windfall": "Herança / valor único",
     "macro": "Macro",
     "assetLiability": "Ativo / dívida"
   },
@@ -301,6 +312,7 @@
     "asset": "Compra da casa",
     "investment": "Fundo indexado",
     "life": "Mudança de vida",
+    "windfall": "Herança / presente",
     "macro": "Fase econômica"
   },
   "timeline": {

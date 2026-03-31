@@ -44,6 +44,7 @@
     "assetLoan": { "label": "Asset / Loan", "desc": "House, car, mortgage" },
     "investment": { "label": "Investment", "desc": "Portfolio & contributions" },
     "life": { "label": "Life", "desc": "Expenses & income shocks" },
+    "windfall": { "label": "Windfall", "desc": "Lump sum to savings pool" },
     "macro": { "label": "Macro", "desc": "Inflation & market regime" }
   },
   "kpi": {
@@ -64,6 +65,7 @@
       "contributions": "Contributions",
       "growthHorizon": "Growth & horizon",
       "lifeImpact": "Life impact",
+      "windfall": "Windfall",
       "macro": "Macro"
     },
     "name": "Name",
@@ -177,6 +179,10 @@
       "addCareerHint": "Add a career event to set $/mo",
       "duration": "Duration"
     },
+    "windfall": {
+      "amount": "Amount to reserve",
+      "hint": "One-time credit to the savings pool on the start month (inheritance, gift, settlement). Does not pass through investments unless you fund them from the pool later."
+    },
     "macro": {
       "inflationYr": "Inflation / yr",
       "hintInflation": "Drag extra yearly spend from inflation on a $12k/yr example; % updates.",
@@ -212,6 +218,7 @@
     "poolFlowOutHeader": "Out",
     "poolFlowInterest": "Pool interest",
     "poolFlowIncomeDeposit": "Income to pool",
+    "poolFlowWindfall": "Windfall to pool",
     "poolFlowFundingInvestments": "To investments",
     "poolFlowAssetDownPayment": "Asset down payment",
     "poolFlowLoanPayments": "Loan payments",
@@ -269,6 +276,7 @@
     "career": "Career",
     "investment": "Investment",
     "life": "Life",
+    "windfall": "Windfall",
     "macro": "Macro",
     "assetLiability": "Asset / loan"
   },
@@ -301,6 +309,7 @@
     "asset": "Home purchase",
     "investment": "Index fund",
     "life": "Life change",
+    "windfall": "Inheritance / gift",
     "macro": "Economic phase"
   },
   "timeline": {

@@ -12,5 +12,7 @@ export function eventEmoji(kind: FinancialEvent['kind']): string {
       return '👶'
     case 'macro':
       return '🌍'
+    case 'windfall':
+      return '🎁'
   }
 }

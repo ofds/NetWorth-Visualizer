@@ -5,7 +5,12 @@
       "Bash(npm test:*)",
       "Bash(npm run:*)",
       "Bash(npx playwright:*)",
-      "Bash(find 'C:\\\\Users\\\\ofds2\\\\Desktop\\\\Codigos\\\\SPAs\\\\NetWorth Visualizer/src' -type f \\\\\\(-name *.tsx -o -name *.ts -o -name *.css \\\\\\))"
+      "Bash(find 'C:\\\\Users\\\\ofds2\\\\Desktop\\\\Codigos\\\\SPAs\\\\NetWorth Visualizer/src' -type f \\\\\\(-name *.tsx -o -name *.ts -o -name *.css \\\\\\))",
+      "Read(//c/Users/ofds2/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.6/**)",
+      "Bash(bash scripts/start-server.sh --project-dir \"C:\\\\Users\\\\ofds2\\\\Desktop\\\\Codigos\\\\SPAs\\\\NetWorth Visualizer\")",
+      "Bash(find /c/Users/ofds2/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.6/ -name *.sh)",
+      "Bash(PLUGIN_DIR='/c/Users/ofds2/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.6/skills/brainstorming')",
+      "Bash(bash \"$PLUGIN_DIR/scripts/start-server.sh\" --project-dir '/c/Users/ofds2/Desktop/Codigos/SPAs/NetWorth Visualizer')"
     ]
   }
 }

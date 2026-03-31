@@ -14,6 +14,8 @@ export function syncEndFromDuration(e: FinancialEvent): FinancialEvent {
     case 'investment':
       if (e.durationYears === null) return { ...e, endMonth: null }
       return { ...e, endMonth: e.startMonth + e.durationYears * 12 - 1 }
+    case 'windfall':
+      return { ...e, endMonth: e.startMonth }
     default:
       return e
   }

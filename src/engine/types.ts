@@ -26,6 +26,8 @@ export type MonthSnapshot = {
   monthlySavings: number
   /** Nominal amount added to the savings pool from income this month (min(monthlySavings, saveCap)); 0 if deficit. */
   poolIncomeDeposit: number
+  /** Nominal one-time credits to the pool from windfall events this month. */
+  poolWindfallTotal: number
   /** Nominal pool debits from asset purchases activated this month (`downPayment`). */
   poolAssetDownPaymentsTotal: number
   /** Nominal amount drawn from the pool to cover a monthly cash-flow deficit (before interest). */

@@ -23,6 +23,8 @@ export function kindShortLabel(kind: FinancialEvent['kind'], translate: TFunctio
       return translate('kind.life')
     case 'macro':
       return translate('kind.macro')
+    case 'windfall':
+      return translate('kind.windfall')
     case 'asset_liability':
       return translate('kind.assetLiability')
   }
@@ -80,6 +82,7 @@ export function totalLiabilitiesDisplay(s: MonthSnapshot, useReal: boolean): num
 export type PoolFlowLineKey =
   | 'interest'
   | 'incomeDeposit'
+  | 'windfall'
   | 'fundingInvestments'
   | 'assetDownPayment'
   | 'loanPayments'
@@ -90,13 +93,14 @@ export type PoolFlowLine = { kind: 'in' | 'out'; lineKey: PoolFlowLineKey; amoun
 export const POOL_FLOW_LINE_I18N: Record<PoolFlowLineKey, string> = {
   interest: 'graph.poolFlowInterest',
   incomeDeposit: 'graph.poolFlowIncomeDeposit',
+  windfall: 'graph.poolFlowWindfall',
   fundingInvestments: 'graph.poolFlowFundingInvestments',
   assetDownPayment: 'graph.poolFlowAssetDownPayment',
   loanPayments: 'graph.poolFlowLoanPayments',
   deficitCover: 'graph.poolFlowDeficitCover',
 }
 
-const POOL_FLOW_IN_ORDER: PoolFlowLineKey[] = ['interest', 'incomeDeposit']
+const POOL_FLOW_IN_ORDER: PoolFlowLineKey[] = ['interest', 'incomeDeposit', 'windfall']
 const POOL_FLOW_OUT_ORDER: PoolFlowLineKey[] = [
   'fundingInvestments',
   'assetDownPayment',
@@ -220,6 +224,7 @@ export function hoverStateForMonth(
   }
   addIn('interest', s.poolInterestEarned * k)
   addIn('incomeDeposit', s.poolIncomeDeposit * k)
+  addIn('windfall', s.poolWindfallTotal * k)
   addOut('fundingInvestments', s.poolFundingToInvestmentsTotal * k)
   addOut('assetDownPayment', s.poolAssetDownPaymentsTotal * k)
   addOut('loanPayments', s.poolLoanPaymentsTotal * k)

@@ -21,6 +21,7 @@ import type {
   InvestmentEvent,
   LifeImpactEvent,
   MacroEnvironmentEvent,
+  WindfallEvent,
 } from '../../events/types'
 import { defaultEventNameI18nKey } from '../../events/defaults'
 import { editorReferenceStartMonth } from '../../events/editorReferenceMonth'
@@ -276,6 +277,9 @@ export function EventForm({ draft, onChange }: Props) {
           tint={tint}
           t={t}
         />
+      )}
+      {draft.kind === 'windfall' && (
+        <WindfallFields e={draft} onChange={onChange} labelCls={labelCls} inputCls={inputCls} tint={tint} t={t} />
       )}
       {draft.kind === 'macro' && (
         <MacroFields
@@ -1320,6 +1324,40 @@ function LifeFields({
             }
             onChange(next)
           }}
+        />
+      </div>
+    </FormSection>
+  )
+}
+
+function WindfallFields({
+  e,
+  onChange,
+  labelCls,
+  inputCls,
+  tint,
+  t,
+}: {
+  e: WindfallEvent
+  onChange: (x: FinancialEvent) => void
+  labelCls: string
+  inputCls: string
+  tint?: string
+  t: TFunction
+}) {
+  return (
+    <FormSection title={t('form.sections.windfall')} tint={tint}>
+      <div>
+        <label className={labelCls} htmlFor="windfall-amt">
+          {t('form.windfall.amount')}
+          <FieldHint text={t('form.windfall.hint')} />
+        </label>
+        <CurrencyInput
+          id="windfall-amt"
+          className={inputCls}
+          value={e.amount}
+          onChange={(amount) => onChange({ ...e, amount: Math.max(0, amount) })}
+          min={0}
         />
       </div>
     </FormSection>
