@@ -88,13 +88,15 @@ src/
 ├── i18n/         # en + pt-BR locale JSON
 ├── lib/          # localStorage persistence
 └── utils/        # Formatting, colors, timeline coordinates
-docs/             # Architecture blueprint + development/performance records
+docs/             # Architecture blueprint + improvement roadmap + development/performance records
 e2e/              # Playwright specs
 ```
 
 ## Architecture
 
 The full design blueprint lives in **[docs/networth-visualizer-architecture.md](docs/networth-visualizer-architecture.md)** — layout, simulation engine, graph layers, state shape, and event lifecycle.
+
+The **product roadmap** — ten improvement dimensions (onboarding, storytelling, scenario comparison, baseline, goals, graph exploration, risk, and more), grounded in the current codebase with an agreed build order — lives in **[docs/improvements-blueprint.md](docs/improvements-blueprint.md)**.
 
 Key implementation notes:
 
