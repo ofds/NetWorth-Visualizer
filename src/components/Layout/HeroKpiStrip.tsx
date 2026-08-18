@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { useMemo } from 'react'
-import { mergeEventsForDragPlacement } from '../../events/mergeDragPlacement'
+import { useDeferredValue, useMemo } from 'react'
 import { syncEndFromDuration } from '../../events/syncEventWindow'
 import type { FinancialEvent } from '../../events/types'
 import { simulate, simulationHorizonMonths } from '../../engine/simulate'
@@ -17,7 +16,8 @@ export function HeroKpiStrip() {
   const isDragging = useAppStore((s) => s.isDragging)
   const draggingDraft = useAppStore((s) => s.draggingDraft)
   const dragPreviewMonth = useAppStore((s) => s.dragPreviewMonth)
-  const editingEventId = useAppStore((s) => s.editingEventId)
+  /** Shared drag preview computed once per pointer move in `setDragging` (also drives the graph). */
+  const dragPreviewSnapshots = useAppStore((s) => s.dragPreviewSnapshots)
   const markerDragPreview = useAppStore((s) => s.markerDragPreview)
   const projectionYears = useAppStore((s) => s.projectionYears)
   const currency = useAppStore((s) => s.currency)
@@ -26,31 +26,28 @@ export function HeroKpiStrip() {
 
   const months = useMemo(() => simulationHorizonMonths(projectionYears), [projectionYears])
 
-  const placementPreviewSnapshots = useMemo(() => {
-    if (!isDragging || !draggingDraft || dragPreviewMonth === null) return null
-    const merged = mergeEventsForDragPlacement(
-      events,
-      draggingDraft,
-      dragPreviewMonth,
-      editingEventId,
-    )
-    return simulate(merged, new Date(), months)
-  }, [isDragging, draggingDraft, dragPreviewMonth, events, editingEventId, months])
+  /** Placement preview: reuse the shared simulation (same merged timeline as the graph). */
+  const placementPreviewSnapshots =
+    isDragging && draggingDraft && dragPreviewMonth !== null ? dragPreviewSnapshots : null
 
-  /** Same merge as graph marker drag; immediate `startMonth` so KPI tracks the handle (graph curve may defer). */
+  /**
+   * Same merge as graph marker drag; the start month is deferred so the KPI tracks the
+   * (deferred) graph curve instead of running an immediate full simulation per pointer move.
+   */
+  const deferredMarkerDragPreview = useDeferredValue(markerDragPreview)
   const markerRepositionPreviewSnapshots = useMemo(() => {
-    if (!markerDragPreview) return null
-    if (!events.some((e) => e.id === markerDragPreview.eventId)) return null
+    if (!deferredMarkerDragPreview) return null
+    if (!events.some((e) => e.id === deferredMarkerDragPreview.eventId)) return null
     const merged = events.map((e) =>
-      e.id === markerDragPreview.eventId
+      e.id === deferredMarkerDragPreview.eventId
         ? syncEndFromDuration({
             ...e,
-            startMonth: markerDragPreview.startMonth,
+            startMonth: deferredMarkerDragPreview.startMonth,
           } as FinancialEvent)
         : e,
     )
     return simulate(merged, new Date(), months)
-  }, [markerDragPreview, events, months])
+  }, [deferredMarkerDragPreview, events, months])
 
   const series =
     markerRepositionPreviewSnapshots?.length

@@ -1,7 +1,11 @@
 import * as d3 from 'd3'
 import { useMemo } from 'react'
 import type { TFunction } from 'i18next'
-import { eventTimelineSegment, simulationHorizonMonths } from '../../engine/simulate'
+import {
+  computeCareerEffectiveEndById,
+  eventTimelineSegment,
+  simulationHorizonMonths,
+} from '../../engine/simulate'
 import type { FinancialEvent } from '../../events/types'
 import { eventColorFor, eventTintHex } from '../../utils/colors'
 import { GRAPH_MARGIN } from './GraphLayers'
@@ -41,8 +45,11 @@ export function computeLifeTimelineRulerHeight(
 ): number {
   const titleInSvg = options?.titleInSvg !== false
   const months = simulationHorizonMonths(projectionYears)
+  // Career effective ends are invariant across events — compute once instead of once
+  // per event (previously O(events × careers × log careers) per ruler draw).
+  const careerEff = computeCareerEffectiveEndById(events)
   const list: RowEv[] = events.map((e) => {
-    const seg = eventTimelineSegment(e, events, months)
+    const seg = eventTimelineSegment(e, events, months, careerEff)
     return {
       id: e.id,
       name: e.name,
@@ -94,8 +101,10 @@ export function LifeTimelineRuler({
   const innerW = Math.max(0, width - left - right)
 
   const rows = useMemo(() => {
+    // Career effective ends are invariant across events — compute once per draw.
+    const careerEff = computeCareerEffectiveEndById(events)
     const list: RowEv[] = events.map((e) => {
-      const seg = eventTimelineSegment(e, events, months)
+      const seg = eventTimelineSegment(e, events, months, careerEff)
       return {
         id: e.id,
         name: e.name,

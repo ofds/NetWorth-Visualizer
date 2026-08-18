@@ -5,7 +5,7 @@ A compound-growth theatre: place life events onto a timeline and watch your fina
 Frontend-only — no backend. All simulation runs in the browser, and scenarios persist to `localStorage`.
 
 ![build](https://img.shields.io/badge/build-passing-brightgreen)
-![tests](https://img.shields.io/badge/tests-143%20passing-brightgreen)
+![tests](https://img.shields.io/badge/tests-156%20passing-brightgreen)
 
 ---
 
@@ -58,6 +58,7 @@ The simulation engine steps **month-by-month** (up to 50 years), applying active
 npm install
 npm run dev        # start the Vite dev server
 npm run test       # run unit tests (Vitest)
+npm run bench      # deterministic engine benchmark (median/p95 per scenario)
 npm run test:e2e   # run Playwright E2E suite
 npm run build      # type-check + production build (outputs to dist/)
 ```
@@ -66,6 +67,7 @@ Other scripts:
 
 - `npm run lint` — ESLint
 - `npm run test:watch` — Vitest watch mode
+- `npm run bench` — engine benchmark harness (small/medium/large/stress scenarios)
 - `npm run test:e2e:ui` — Playwright UI mode
 - `npm run preview` — preview the production build
 
@@ -102,7 +104,7 @@ Key implementation notes:
 
 ## Testing
 
-- **Unit:** 143 tests across 20 files (Vitest) — engine math, event types, store actions, graph helpers, persistence.
+- **Unit:** 156 tests across 21 files (Vitest) — engine math (incl. a bit-exact equivalence suite vs the frozen reference engine), event types, store actions, graph helpers, persistence.
 - **E2E:** Playwright specs for the main graph flow, zoom interactions, and i18n.
 
 ```bash

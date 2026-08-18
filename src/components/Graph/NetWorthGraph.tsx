@@ -26,7 +26,6 @@ import {
 } from '../../engine/investmentPlacement'
 import { simulate, simulationHorizonMonths } from '../../engine/simulate'
 import { snapshotInflationScale } from '../../engine/snapshotDisplay'
-import { mergeEventsForDragPlacement } from '../../events/mergeDragPlacement'
 import { syncEndFromDuration } from '../../events/syncEventWindow'
 import { AnimatedCurrency } from '../shared/AnimatedCurrency'
 import { useAppStore, type AppLang } from '../../store/useAppStore'
@@ -171,7 +170,8 @@ export function NetWorthGraph({
   const isDragging = useAppStore((s) => s.isDragging)
   const dragPreviewMonth = useAppStore((s) => s.dragPreviewMonth)
   const draggingDraft = useAppStore((s) => s.draggingDraft)
-  const editingEventId = useAppStore((s) => s.editingEventId)
+  /** Shared live preview simulation (computed once per drag in `setDragging`). */
+  const previewSnapshots = useAppStore((s) => s.dragPreviewSnapshots)
   const setMarkerDragPreview = useAppStore((s) => s.setMarkerDragPreview)
   const setMarkerDragPlacementInvalid = useAppStore((s) => s.setMarkerDragPlacementInvalid)
   const projectionYears = useAppStore((s) => s.projectionYears)
@@ -179,19 +179,6 @@ export function NetWorthGraph({
   const setGraphPinnedMonth = useAppStore((s) => s.setGraphPinnedMonth)
   const patchGraphSettings = useAppStore((s) => s.patchGraphSettings)
 
-  const previewSnapshots = useMemo(() => {
-    if (!isDragging || !draggingDraft || dragPreviewMonth === null) return null
-    const months = simulationHorizonMonths(projectionYears)
-    const merged = mergeEventsForDragPlacement(
-      events,
-      draggingDraft,
-      dragPreviewMonth,
-      editingEventId,
-    )
-    return simulate(merged, new Date(), months)
-  }, [isDragging, draggingDraft, dragPreviewMonth, events, editingEventId, projectionYears])
-
-  /** Baseline sim aligned with `previewSnapshots` length (for investment “starts at M” preview split). */
   const previewBaselineSnapshots = useMemo(() => {
     if (!previewSnapshots?.length) return null
     const n = previewSnapshots.length
@@ -1682,6 +1669,10 @@ export function NetWorthGraph({
     const rootNode = root.node()
     if (!rootNode) return
 
+    /** Month/series the last hover state was computed for (persists across mousemove). */
+    let lastHoverIdx = -1
+    let lastCrosshair: { left: number; width: number } | null = null
+
     const onMove = (ev: Event) => {
       const mev = ev as MouseEvent
       const [mx, my] = pointerInner(mev)
@@ -1730,16 +1721,23 @@ export function NetWorthGraph({
       }
 
       if (insideMonthAxis) {
-        if (pin === null) {
-          const idx = Math.round(xScale.invert(mx))
-          const i = Math.max(0, Math.min(n - 1, idx))
-          setPlotCrosshairBand(monthColumnBandInner(i, n, innerW, xScale))
-        } else {
-          setPlotCrosshairBand(monthColumnBandInner(pin, n, innerW, xScale))
+        const i =
+          pin !== null
+            ? pin
+            : Math.max(0, Math.min(n - 1, Math.round(xScale.invert(mx))))
+        const band = monthColumnBandInner(i, n, innerW, xScale)
+        if (!lastCrosshair || lastCrosshair.left !== band.left || lastCrosshair.width !== band.width) {
+          lastCrosshair = band
+          setPlotCrosshairBand(band)
         }
       } else if (pin !== null) {
-        setPlotCrosshairBand(monthColumnBandInner(pin, n, innerW, xScale))
-      } else {
+        const band = monthColumnBandInner(pin, n, innerW, xScale)
+        if (!lastCrosshair || lastCrosshair.left !== band.left || lastCrosshair.width !== band.width) {
+          lastCrosshair = band
+          setPlotCrosshairBand(band)
+        }
+      } else if (lastCrosshair !== null) {
+        lastCrosshair = null
         setPlotCrosshairBand(null)
       }
 
@@ -1770,8 +1768,11 @@ export function NetWorthGraph({
       if (pin !== null) return
       const idx = Math.round(xScale.invert(mx))
       const i = Math.max(0, Math.min(hoverSeries.length - 1, idx))
-      const next = hoverStateForMonth(hoverSeries, i, eventsForMarkers, useReal, t)
-      if (next) setHover(next)
+      if (i !== lastHoverIdx) {
+        lastHoverIdx = i
+        const next = hoverStateForMonth(hoverSeries, i, eventsForMarkers, useReal, t)
+        if (next) setHover(next)
+      }
     }
 
     const onClick = (ev: MouseEvent) => {

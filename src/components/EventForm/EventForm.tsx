@@ -8,6 +8,7 @@ import {
   remainingDepositForRecurringAfterPriorInvestments,
 } from '../../engine/investmentPoolRemaining'
 import { assetPlacementShortfallAtMonth } from '../../engine/assetPlacement'
+import { totalAssetDownPaymentShortfallForEventFromSnapshots } from '../../engine/assetPlacement'
 import {
   referenceCareerGrossAtMonth,
   simulate,
@@ -25,8 +26,10 @@ import type {
 } from '../../events/types'
 import { defaultEventNameI18nKey } from '../../events/defaults'
 import { editorReferenceStartMonth } from '../../events/editorReferenceMonth'
-import { syncEndFromDuration } from '../../events/syncEventWindow'
 import { useAppStore, type AppLang } from '../../store/useAppStore'
+import { useDragPreviewSim } from '../../hooks/useDragPreviewSim'
+import { useLiveSimulation, type LiveSim } from '../../hooks/useLiveSimulation'
+import type { MonthSnapshot } from '../../engine/types'
 import { eventColorFor, eventTintHex, graphAssetColors } from '../../utils/colors'
 import { formatCurrency } from '../../utils/formatting'
 import { pickYValue, scaledSavingsPool } from '../../engine/snapshotDisplay'
@@ -54,20 +57,7 @@ function investmentPortfolioNotional(events: FinancialEvent[]): number {
   return s
 }
 
-/** Timeline + current editor draft, for live simulation (includes not-yet-placed drafts). */
-function mergedEventsForLiveSim(
-  draft: FinancialEvent,
-  events: FinancialEvent[],
-  editingEventId: string | null,
-): FinancialEvent[] {
-  if (editingEventId !== null) {
-    return events.map((x) =>
-      x.id === editingEventId ? ({ ...draft, id: editingEventId } as FinancialEvent) : x,
-    )
-  }
-  if (events.some((x) => x.id === draft.id)) return events
-  return [...events, draft]
-}
+/** Timeline + current editor draft, for live simulation — moved to useLiveSimulation (shared). */
 
 function FormSection({
   title,
@@ -91,16 +81,19 @@ function FormSection({
   )
 }
 
-function HorizonPreviewLine({ draft, t }: { draft: FinancialEvent; t: TFunction }) {
+function HorizonPreviewLine({
+  t,
+  liveSim,
+}: {
+  t: TFunction
+  /** Shared live simulation (drag preview or draft-at-reference-month). */
+  liveSim: LiveSim | null
+}) {
   const events = useAppStore((s) => s.events)
   const editingEventId = useAppStore((s) => s.editingEventId)
   const projectionYears = useAppStore((s) => s.projectionYears)
   const currency = useAppStore((s) => s.currency)
   const showReal = useAppStore((s) => s.graphSettings.showRealValues)
-  const graphPinnedMonth = useAppStore((s) => s.graphPinnedMonth)
-  const isDragging = useAppStore((s) => s.isDragging)
-  const dragPreviewMonth = useAppStore((s) => s.dragPreviewMonth)
-  const draggingDraft = useAppStore((s) => s.draggingDraft)
   const simulation = useAppStore((s) => s.simulation)
   const lang = useAppStore((s) => s.lang)
 
@@ -111,27 +104,8 @@ function HorizonPreviewLine({ draft, t }: { draft: FinancialEvent; t: TFunction 
   }, [events, projectionYears, simulation, months])
 
   const line = useMemo(() => {
-    const simLen = Math.max(months, simulation.length, 1)
-    const refM = editorReferenceStartMonth({
-      draft,
-      graphPinnedMonth,
-      isDragging,
-      dragPreviewMonth,
-      draggingDraft,
-      simulationLength: simLen,
-    })
-    const draftAtRef = syncEndFromDuration({ ...draft, startMonth: refM } as FinancialEvent)
-    const merged: FinancialEvent[] =
-      editingEventId !== null
-        ? events.map((e) =>
-            e.id === editingEventId
-              ? ({ ...draftAtRef, id: editingEventId } as FinancialEvent)
-              : e,
-          )
-        : [...events.filter((e) => e.id !== draft.id), draftAtRef]
-
-    const nextSim = simulate(merged, new Date(), months)
-    if (nextSim.length === 0) return null
+    const nextSim = liveSim?.snapshots
+    if (!nextSim || nextSim.length === 0) return null
     const end = nextSim[nextSim.length - 1]!
     const endVal = pickYValue(end, showReal)
     if (events.length === 0 && editingEventId === null) {
@@ -149,21 +123,14 @@ function HorizonPreviewLine({ draft, t }: { draft: FinancialEvent; t: TFunction 
       total: formatCurrency(endVal, currency, lang),
     })
   }, [
-    draft,
+    liveSim,
     events,
     editingEventId,
-    projectionYears,
     currency,
     showReal,
     t,
-    graphPinnedMonth,
-    isDragging,
-    dragPreviewMonth,
-    draggingDraft,
-    simulation.length,
-    lang,
     baseSim,
-    months,
+    lang,
   ])
 
   if (!line) return null
@@ -180,6 +147,8 @@ export function EventForm({ draft, onChange }: Props) {
   const lang = useAppStore((s) => s.lang)
   const allEvents = useAppStore((s) => s.events)
   const prevLangRef = useRef<string | undefined>(undefined)
+  /** One shared live simulation for the whole form (drag preview or draft-at-reference-month). */
+  const liveSim = useLiveSimulation(draft)
 
   useEffect(() => {
     const prev = prevLangRef.current
@@ -213,7 +182,7 @@ export function EventForm({ draft, onChange }: Props) {
 
   return (
     <motion.div layout className="min-h-0 w-full space-y-1 pb-4 text-[11px]" key={draft.id}>
-      <HorizonPreviewLine draft={draft} t={t} />
+      <HorizonPreviewLine t={t} liveSim={liveSim} />
 
       <FormSection title={t('form.sections.basics')} tint={tint}>
         <div>
@@ -263,6 +232,7 @@ export function EventForm({ draft, onChange }: Props) {
           inputCls={inputCls}
           tint={tint}
           t={t}
+          liveSim={liveSim}
         />
       )}
       {draft.kind === 'life' && (
@@ -455,6 +425,8 @@ function AssetFields({
   const draggingDraft = useAppStore((s) => s.draggingDraft)
   const simulation = useAppStore((s) => s.simulation)
   const projectionYears = useAppStore((s) => s.projectionYears)
+  /** Shared drag-preview simulation while dragging this draft. */
+  const shared = useDragPreviewSim(e)
   const amortizationSystem = e.amortizationSystem ?? 'price'
   const installmentSource = e.installmentSource ?? 'expenses'
   const toggleWrapCls = 'grid grid-cols-2 gap-1 rounded-md border border-slate-700 bg-slate-900 p-1'
@@ -492,17 +464,23 @@ function AssetFields({
       projectionYears,
     ],
   )
-  const assetPlacementShortfall = useMemo(
-    () =>
-      assetPlacementShortfallAtMonth(
-        events,
-        e,
-        referenceMonth,
-        editingEventId,
-        projectionYears,
-      ),
-    [events, e, referenceMonth, editingEventId, projectionYears],
-  )
+  const assetPlacementShortfall = useMemo(() => {
+    // Reuse the shared drag-preview simulation (its down-payment shortfalls match
+    // `assetPlacementShortfallAtMonth` for the same merged timeline — see tests).
+    if (shared.substitute && shared.snapshots) {
+      return totalAssetDownPaymentShortfallForEventFromSnapshots(
+        shared.snapshots,
+        editingEventId ?? e.id,
+      )
+    }
+    return assetPlacementShortfallAtMonth(
+      events,
+      e,
+      referenceMonth,
+      editingEventId,
+      projectionYears,
+    )
+  }, [shared, events, e, referenceMonth, editingEventId, projectionYears])
 
   return (
     <FormSection title={t('form.sections.assetLoan')} tint={tint}>
@@ -724,33 +702,22 @@ function AssetFields({
 function InvestmentPoolCallout({
   e,
   referenceMonth,
+  snapshots,
   currency,
   lang,
   t,
 }: {
   e: InvestmentEvent
   referenceMonth: number
+  /** Shared live simulation (drag preview or draft-at-reference-month). */
+  snapshots: MonthSnapshot[] | null
   currency: string
   lang: AppLang
   t: TFunction
 }) {
-  const events = useAppStore((s) => s.events)
-  const editingEventId = useAppStore((s) => s.editingEventId)
-  const projectionYears = useAppStore((s) => s.projectionYears)
   const showReal = useAppStore((s) => s.graphSettings.showRealValues)
 
-  const hypothetical = useMemo(
-    () => syncEndFromDuration({ ...e, startMonth: referenceMonth } as InvestmentEvent),
-    [e, referenceMonth],
-  )
-
-  const snapshots = useMemo(() => {
-    const months = simulationHorizonMonths(projectionYears)
-    const merged = mergedEventsForLiveSim(hypothetical, events, editingEventId)
-    return simulate(merged, new Date(), months)
-  }, [hypothetical, events, editingEventId, projectionYears])
-
-  if (snapshots.length === 0) return null
+  if (!snapshots || snapshots.length === 0) return null
 
   const m = Math.min(Math.max(0, referenceMonth), snapshots.length - 1)
   const snapM = snapshots[m]!
@@ -835,6 +802,7 @@ function InvestmentFields({
   inputCls,
   tint,
   t,
+  liveSim,
 }: {
   e: InvestmentEvent
   currency: string
@@ -844,47 +812,28 @@ function InvestmentFields({
   inputCls: string
   tint?: string
   t: TFunction
+  /** Shared live simulation (drag preview or draft-at-reference-month). */
+  liveSim: LiveSim | null
 }) {
+  const events = useAppStore((s) => s.events)
   const graphPinnedMonth = useAppStore((s) => s.graphPinnedMonth)
   const isDragging = useAppStore((s) => s.isDragging)
   const dragPreviewMonth = useAppStore((s) => s.dragPreviewMonth)
   const draggingDraft = useAppStore((s) => s.draggingDraft)
-  const simulation = useAppStore((s) => s.simulation)
-  const events = useAppStore((s) => s.events)
-  const editingEventId = useAppStore((s) => s.editingEventId)
-  const projectionYears = useAppStore((s) => s.projectionYears)
 
-  const referenceMonth = useMemo(
-    () =>
-      editorReferenceStartMonth({
-        draft: e,
-        graphPinnedMonth,
-        isDragging,
-        dragPreviewMonth,
-        draggingDraft,
-        simulationLength: Math.max(1, simulation.length, simulationHorizonMonths(projectionYears)),
-      }),
-    [
-      e,
-      graphPinnedMonth,
-      isDragging,
-      dragPreviewMonth,
-      draggingDraft,
-      simulation.length,
-      projectionYears,
-    ],
-  )
+  const referenceMonth = liveSim?.referenceMonth ?? e.startMonth
 
   /** Merged timeline + draft (same as pool callout + graph tooltip rows). */
   const { mergedEventsForCap, snapshotRowForCap } = useMemo(() => {
-    const months = simulationHorizonMonths(projectionYears)
-    const hypothetical = syncEndFromDuration({ ...e, startMonth: referenceMonth } as InvestmentEvent)
-    const merged = mergedEventsForLiveSim(hypothetical, events, editingEventId)
-    const snaps = simulate(merged, new Date(), months)
-    if (snaps.length === 0) return { mergedEventsForCap: merged, snapshotRowForCap: null as null }
-    const idx = Math.min(Math.max(0, referenceMonth), snaps.length - 1)
-    return { mergedEventsForCap: merged, snapshotRowForCap: snaps[idx]! }
-  }, [e, events, editingEventId, projectionYears, referenceMonth])
+    if (!liveSim || liveSim.snapshots.length === 0) {
+      return { mergedEventsForCap: events, snapshotRowForCap: null as null }
+    }
+    const idx = Math.min(Math.max(0, referenceMonth), liveSim.snapshots.length - 1)
+    return {
+      mergedEventsForCap: liveSim.mergedEvents,
+      snapshotRowForCap: liveSim.snapshots[idx]!,
+    }
+  }, [liveSim, referenceMonth, events])
 
   /** Same names as graph tooltip: pool deposit (income) — slider track length. */
   const monthlyPoolDeposit =
@@ -1018,6 +967,7 @@ function InvestmentFields({
         <InvestmentPoolCallout
           e={e}
           referenceMonth={referenceMonth}
+          snapshots={liveSim?.snapshots ?? null}
           currency={currency}
           lang={lang}
           t={t}

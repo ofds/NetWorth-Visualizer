@@ -2,6 +2,7 @@ import { arrayMove } from '@dnd-kit/sortable'
 import { create } from 'zustand'
 import i18n from '../i18n'
 import { nextEventId } from '../events/defaults'
+import { mergeEventsForDragPlacement } from '../events/mergeDragPlacement'
 import { detectMilestones } from '../engine/milestones'
 import { simulate, simulationHorizonMonths } from '../engine/simulate'
 import type { Milestone, MonthSnapshot } from '../engine/types'
@@ -71,6 +72,14 @@ export type AppState = {
   dragPreviewMonth: number | null
   /** Draft payload while dragging onto the graph (for live preview). */
   draggingDraft: FinancialEvent | null
+  /**
+   * Live simulation of `dragPreviewMonth` merged with `draggingDraft` — computed once in
+   * `setDragging` and shared by the graph preview, KPI strip, drop-invalid check and the
+   * event form (previously each computed its own full simulation per pointer move).
+   */
+  dragPreviewSnapshots: MonthSnapshot[] | null
+  /** The exact merged timeline `dragPreviewSnapshots` was simulated from. */
+  dragPreviewMergedEvents: FinancialEvent[] | null
   /** While repositioning a graph marker: live start month for timeline + layout. */
   markerDragPreview: MarkerDragPreview | null
   /**
@@ -137,6 +146,8 @@ const initialState: AppState = {
   isDragging: false,
   dragPreviewMonth: null,
   draggingDraft: null,
+  dragPreviewSnapshots: null,
+  dragPreviewMergedEvents: null,
   markerDragPreview: null,
   markerDragPlacementInvalid: null,
   graphPinnedMonth: null,
@@ -144,6 +155,15 @@ const initialState: AppState = {
 }
 
 export type AppStore = AppState & AppActions
+
+/** Inputs the last drag-preview sim was computed from (module-private, non-reactive). */
+let dragPreviewCache: {
+  draft: FinancialEvent | null
+  events: FinancialEvent[]
+  editingEventId: string | null
+  projectionYears: number
+  month: number
+} | null = null
 
 export const useAppStore = create<AppStore>((set, get) => ({
   ...initialState,
@@ -188,14 +208,52 @@ export const useAppStore = create<AppStore>((set, get) => ({
   setEditingEventId: (editingEventId) => set({ editingEventId }),
   setDraggingDraft: (draggingDraft) => set({ draggingDraft }),
   setDragging: (isDragging, previewMonth = null) =>
-    set((s) =>
-      isDragging
-        ? {
-            isDragging: true,
-            dragPreviewMonth: previewMonth ?? s.dragPreviewMonth ?? 0,
-          }
-        : { isDragging: false, dragPreviewMonth: null, draggingDraft: null },
-    ),
+    set((s) => {
+      if (!isDragging) {
+        return {
+          isDragging: false,
+          dragPreviewMonth: null,
+          draggingDraft: null,
+          dragPreviewSnapshots: null,
+          dragPreviewMergedEvents: null,
+        }
+      }
+      const pm = previewMonth ?? s.dragPreviewMonth ?? 0
+      const { draggingDraft, events, editingEventId, projectionYears } = s
+      // Reuse the previous preview sim when none of its inputs changed (pointer moves
+      // within the same month column are common and need no recomputation).
+      if (
+        draggingDraft &&
+        dragPreviewCache !== null &&
+        dragPreviewCache.draft === draggingDraft &&
+        dragPreviewCache.events === events &&
+        dragPreviewCache.editingEventId === editingEventId &&
+        dragPreviewCache.projectionYears === projectionYears &&
+        dragPreviewCache.month === pm
+      ) {
+        return { isDragging: true, dragPreviewMonth: pm }
+      }
+      let snapshots: MonthSnapshot[] | null = null
+      let merged: FinancialEvent[] | null = null
+      // The preview also covers the empty-timeline case (draft alone bends the baseline).
+      if (draggingDraft) {
+        merged = mergeEventsForDragPlacement(events, draggingDraft, pm, editingEventId)
+        snapshots = simulate(merged, new Date(), simulationHorizonMonths(projectionYears))
+      }
+      dragPreviewCache = {
+        draft: draggingDraft,
+        events,
+        editingEventId,
+        projectionYears,
+        month: pm,
+      }
+      return {
+        isDragging: true,
+        dragPreviewMonth: pm,
+        dragPreviewSnapshots: snapshots,
+        dragPreviewMergedEvents: merged,
+      }
+    }),
   setMarkerDragPreview: (markerDragPreview) =>
     set({
       markerDragPreview,

@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createDefaultCareerEvent } from '../events/defaults'
 import type { InvestmentEvent } from '../events/types'
+import { mergeEventsForDragPlacement } from '../events/mergeDragPlacement'
+import { simulate, simulationHorizonMonths } from '../engine/simulate'
 import { useAppStore } from './useAppStore'
 
 describe('useAppStore', () => {
@@ -149,5 +151,96 @@ describe('useAppStore', () => {
     useAppStore.getState().removeEvent('dup')
     expect(useAppStore.getState().events).toHaveLength(1)
     expect(useAppStore.getState().events[0]!.name).toBe('Y')
+  })
+
+  it('setDragging computes one shared drag-preview simulation equal to a direct simulate', () => {
+    const career = createDefaultCareerEvent(0)
+    career.monthlyGrossIncome = 12_000
+    career.effectiveTaxRate = 0
+    career.savingsRate = 0.5
+    const inv: InvestmentEvent = {
+      kind: 'investment',
+      id: 'draft-inv',
+      startMonth: 0,
+      endMonth: null,
+      name: 'Draft',
+      contributionKind: 'lump_sum',
+      initialAmount: 5000,
+      monthlyContribution: 0,
+      expectedAnnualReturn: 0.06,
+      assetClass: 'stocks',
+      showVolatilityCone: false,
+      durationYears: null,
+    }
+    useAppStore.getState().setEvents([career])
+    useAppStore.getState().setDraggingDraft(inv)
+    useAppStore.getState().setDragging(true, 36)
+
+    const st = useAppStore.getState()
+    const months = simulationHorizonMonths(st.projectionYears)
+    const expected = simulate(
+      mergeEventsForDragPlacement(st.events, inv, 36, null),
+      new Date(),
+      months,
+    )
+    // `date` is `new Date()` inside the store action; strip it before comparing.
+    const strip = (s: { date: Date }) => ({ ...s, date: undefined })
+    expect(st.dragPreviewSnapshots?.map(strip)).toEqual(expected.map(strip))
+    expect(st.dragPreviewMergedEvents).toEqual(
+      mergeEventsForDragPlacement(st.events, inv, 36, null),
+    )
+    expect(st.dragPreviewMonth).toBe(36)
+  })
+
+  it('setDragging reuses the cached preview when inputs are unchanged', () => {
+    const inv: InvestmentEvent = {
+      kind: 'investment',
+      id: 'draft-inv2',
+      startMonth: 0,
+      endMonth: null,
+      name: 'Draft 2',
+      contributionKind: 'recurring',
+      initialAmount: 0,
+      monthlyContribution: 100,
+      expectedAnnualReturn: 0.05,
+      assetClass: 'stocks',
+      showVolatilityCone: false,
+      durationYears: null,
+    }
+    useAppStore.getState().setEvents([])
+    useAppStore.getState().setDraggingDraft(inv)
+    useAppStore.getState().setDragging(true, 10)
+    const first = useAppStore.getState().dragPreviewSnapshots
+    expect(first).not.toBeNull()
+    // Same month → same snapshots reference (no recomputation).
+    useAppStore.getState().setDragging(true, 10)
+    expect(useAppStore.getState().dragPreviewSnapshots).toBe(first)
+    // New month → recomputed.
+    useAppStore.getState().setDragging(true, 11)
+    expect(useAppStore.getState().dragPreviewSnapshots).not.toBe(first)
+  })
+
+  it('setDragging(false) clears the shared preview', () => {
+    const inv: InvestmentEvent = {
+      kind: 'investment',
+      id: 'draft-inv3',
+      startMonth: 0,
+      endMonth: null,
+      name: 'Draft 3',
+      contributionKind: 'lump_sum',
+      initialAmount: 100,
+      monthlyContribution: 0,
+      expectedAnnualReturn: 0,
+      assetClass: 'stocks',
+      showVolatilityCone: false,
+      durationYears: null,
+    }
+    useAppStore.getState().setDraggingDraft(inv)
+    useAppStore.getState().setDragging(true, 5)
+    expect(useAppStore.getState().dragPreviewSnapshots).not.toBeNull()
+    useAppStore.getState().setDragging(false)
+    expect(useAppStore.getState().dragPreviewSnapshots).toBeNull()
+    expect(useAppStore.getState().dragPreviewMergedEvents).toBeNull()
+    expect(useAppStore.getState().isDragging).toBe(false)
   })
 })

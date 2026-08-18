@@ -21,6 +21,8 @@ import { useResizeObserverRect } from '../../hooks/useGraphDimensions'
 import { useSimulation } from '../../hooks/useSimulation'
 import { assetCanPlaceAtMonth } from '../../engine/assetPlacement'
 import { investmentCanPlaceAtMonth } from '../../engine/investmentPlacement'
+import { totalAssetDownPaymentShortfallForEventFromSnapshots } from '../../engine/assetPlacement'
+import { totalInvestmentShortfallForEventFromSnapshots } from '../../engine/investmentPlacement'
 import { simulationHorizonMonths } from '../../engine/simulate'
 import { clientXToMonthIndexInDomain } from '../../utils/timelineCoords'
 import { useAppStore } from '../../store/useAppStore'
@@ -81,6 +83,7 @@ export function AppShell() {
   const isDragging = useAppStore((s) => s.isDragging)
   const draggingDraft = useAppStore((s) => s.draggingDraft)
   const dragPreviewMonth = useAppStore((s) => s.dragPreviewMonth)
+  const dragPreviewSnapshots = useAppStore((s) => s.dragPreviewSnapshots)
   const editingEventId = useAppStore((s) => s.editingEventId)
   const markerDragPreview = useAppStore((s) => s.markerDragPreview)
   const markerDragPlacementInvalid = useAppStore((s) => s.markerDragPlacementInvalid)
@@ -122,36 +125,24 @@ export function AppShell() {
     return LIFE_TIMELINE_TITLE_BAR_H + lifeTimelineBodyHeight
   }, [events.length, lifeTimelineBodyHeight])
 
-  /** True while dragging an investment or asset whose placement is invalid at the hover month (pool/reserve). */
+  /** True while dragging an investment or asset whose placement is invalid at the hover month (pool/reserve).
+   *  Derived from the shared drag-preview simulation (exactly the shortfall the placement helpers compute)
+   *  instead of running a separate full simulation per pointer move. */
   const graphDropInvalid = useMemo(() => {
     if (!isDragging || !draggingDraft || dragPreviewMonth === null) return false
+    if (!dragPreviewSnapshots || dragPreviewSnapshots.length === 0) return false
+    const candidateId = editingEventId ?? draggingDraft.id
     if (draggingDraft.kind === 'investment') {
-      return !investmentCanPlaceAtMonth(
-        events,
-        draggingDraft,
-        dragPreviewMonth,
-        editingEventId,
-        projectionYears,
-      )
+      return totalInvestmentShortfallForEventFromSnapshots(dragPreviewSnapshots, candidateId) !== 0
     }
     if (draggingDraft.kind === 'asset_liability' && draggingDraft.mode === 'asset') {
-      return !assetCanPlaceAtMonth(
-        events,
-        draggingDraft,
-        dragPreviewMonth,
-        editingEventId,
-        projectionYears,
+      return (
+        totalAssetDownPaymentShortfallForEventFromSnapshots(dragPreviewSnapshots, candidateId) !==
+        0
       )
     }
     return false
-  }, [
-    isDragging,
-    draggingDraft,
-    dragPreviewMonth,
-    events,
-    editingEventId,
-    projectionYears,
-  ])
+  }, [isDragging, draggingDraft, dragPreviewMonth, dragPreviewSnapshots, editingEventId])
 
   /** Marker drag on graph: invalid if investment/asset cannot be placed at preview month. */
   const markerRepositionInvalid = useMemo(() => {

@@ -1,19 +1,21 @@
 import { useEffect } from 'react'
 import { useAppStore } from '../store/useAppStore'
 
+/**
+ * Keeps the store's `simulation`/`milestones` in sync with the financial inputs.
+ *
+ * Only `events` and `projectionYears` change simulation output. Presentation state
+ * (real/nominal toggle, language, tooltips, zoom, …) must NOT re-run the engine —
+ * previously toggling “Real $” or the UI language recomputed the full simulation
+ * (and with it a full graph rebuild) even though the money numbers were identical.
+ */
 export function useSimulation() {
   const events = useAppStore((s) => s.events)
   const projectionYears = useAppStore((s) => s.projectionYears)
-  const showReal = useAppStore((s) => s.graphSettings.showRealValues)
-  const lang = useAppStore((s) => s.lang)
-  const simulation = useAppStore((s) => s.simulation)
 
   useEffect(() => {
     useAppStore.getState().recomputeSimulation()
-  }, [events, projectionYears, showReal, lang])
+  }, [events, projectionYears])
 
-  return {
-    snapshots: simulation,
-    status: 'ready' as const,
-  }
+  return { status: 'ready' as const }
 }
