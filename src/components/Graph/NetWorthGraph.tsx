@@ -1807,17 +1807,6 @@ export function NetWorthGraph({
     moveTarget.addEventListener('mousemove', onMove, { capture: true })
     el.addEventListener('click', onClick, { capture: true })
 
-    if (graphSettings.showMonteCarlo) {
-      plotClip
-        .append('text')
-        .attr('x', innerW / 2)
-        .attr('y', 14)
-        .attr('text-anchor', 'middle')
-        .attr('fill', '#64748b')
-        .attr('font-size', 11)
-        .text(t('graph.monteCarloPlaceholder'))
-    }
-
     applyAssetStackHover(el, assetStackHoverKeyRef.current)
 
     return () => {
@@ -1851,7 +1840,6 @@ export function NetWorthGraph({
     scheduleMilestoneHoverClear,
     graphSettings.showRealValues,
     graphSettings.showLinearReference,
-    graphSettings.showMonteCarlo,
     graphSettings.showAssetBreakdown,
     graphSettings.stressTestActive,
     graphSettings.zoomRange,

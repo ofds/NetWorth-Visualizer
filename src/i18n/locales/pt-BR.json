@@ -14,8 +14,7 @@
     "realDollars": "R$ real",
     "linearRef": "Ref. linear",
     "breakdown": "Detalhamento",
-    "stressTest": "Teste de estresse",
-    "mcNote": "Nota MC"
+    "stressTest": "Teste de estresse"
   },
   "editor": {
     "title": "Editor de eventos"
@@ -206,7 +205,6 @@
     "markerAria": "{{name}}. Clique para editar. Arraste na horizontal no gráfico para mudar o mês de início.",
     "markerAriaDelete": "{{name}}. Clique para editar. Arraste na horizontal no gráfico para mudar o mês de início. Clique com o botão do meio para excluir.",
     "markerMiddleDelete": "Clique com o botão do meio para excluir",
-    "monteCarloPlaceholder": "Cone de Monte Carlo — Fase 2",
     "monthHeader": "{{when}} · mês {{month}}",
     "pinnedBadgeTitle": "Fixado — clique no gráfico de novo para desafixar.",
     "eventNewBadge": "Novo",

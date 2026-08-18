@@ -49,6 +49,7 @@ export function hydrateStoreFromStorage(): void {
     const raw = { ...(p.graphSettings as Record<string, unknown>) }
     delete raw.showEventContributions
     delete raw.showContributionRibbonLegend
+    delete raw.showMonteCarlo
     st.patchGraphSettings({ ...DEFAULT_GRAPH_SETTINGS, ...(raw as Partial<GraphSettingsState>) })
   }
   if (isAppLang(p.lang)) st.setLang(p.lang)

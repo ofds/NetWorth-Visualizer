@@ -14,8 +14,7 @@
     "realDollars": "Real $",
     "linearRef": "Linear ref",
     "breakdown": "Breakdown",
-    "stressTest": "Stress test",
-    "mcNote": "MC note"
+    "stressTest": "Stress test"
   },
   "editor": {
     "title": "Event editor"
@@ -203,7 +202,6 @@
     "markerAria": "{{name}}. Click to edit. Drag horizontally on the chart to change the start month.",
     "markerAriaDelete": "{{name}}. Click to edit. Drag horizontally on the chart to change the start month. Middle-click to delete.",
     "markerMiddleDelete": "Middle-click to delete",
-    "monteCarloPlaceholder": "Monte Carlo cone — Phase 2",
     "monthHeader": "{{when}} · month {{month}}",
     "pinnedBadgeTitle": "Pinned — click the chart again to unpin.",
     "eventNewBadge": "New",

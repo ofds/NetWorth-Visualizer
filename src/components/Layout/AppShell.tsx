@@ -482,11 +482,6 @@ export function AppShell() {
             on={graphSettings.stressTestActive}
             onToggle={() => patchGraphSettings({ stressTestActive: !graphSettings.stressTestActive })}
           />
-          <Toggle
-            label={t('settings.mcNote')}
-            on={graphSettings.showMonteCarlo}
-            onToggle={() => patchGraphSettings({ showMonteCarlo: !graphSettings.showMonteCarlo })}
-          />
         </div>
       </section>
 

@@ -51,7 +51,6 @@ const inv: InvestmentEvent = {
   monthlyContribution: 100,
   expectedAnnualReturn: 0.05,
   assetClass: 'stocks',
-  showVolatilityCone: false,
   durationYears: 10,
 }
 

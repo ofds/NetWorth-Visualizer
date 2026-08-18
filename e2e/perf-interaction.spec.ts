@@ -48,7 +48,6 @@ async function seedScenario(page: Page, fixtureName: string) {
             graphSettings: {
               showRealValues: false,
               showLinearReference: false,
-              showMonteCarlo: false,
               showAssetBreakdown: false,
               stressTestActive: false,
               showLifeTimeline: true,

@@ -74,7 +74,6 @@ export function createDefaultInvestmentEvent(startMonth = 0): InvestmentEvent {
     monthlyContribution: 500,
     expectedAnnualReturn: 0.07,
     assetClass: 'stocks',
-    showVolatilityCone: false,
     durationYears: null,
   }
 }

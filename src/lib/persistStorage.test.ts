@@ -36,7 +36,6 @@ describe('persistStorage', () => {
       graphSettings: {
         showRealValues: true,
         showLinearReference: false,
-        showMonteCarlo: false,
         showAssetBreakdown: true,
         zoomRange: [0, 120] as const,
       },

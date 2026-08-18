@@ -137,7 +137,6 @@ test.describe('Net worth graph', () => {
               monthlyContribution: 1000,
               expectedAnnualReturn: 0.07,
               assetClass: 'stocks',
-              showVolatilityCone: false,
               durationYears: null,
             },
           ],

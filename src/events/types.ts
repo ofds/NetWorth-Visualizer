@@ -65,7 +65,6 @@ export type InvestmentEvent = FinancialEventBase & {
   monthlyContribution: number
   expectedAnnualReturn: number
   assetClass: InvestmentAssetClass
-  showVolatilityCone: boolean
   durationYears: number | null
 }
 

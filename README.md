@@ -75,7 +75,7 @@ Other scripts:
 
 ```
 src/
-├── engine/       # Simulation core: simulate.ts, formulas, milestones, monteCarlo (stub)
+├── engine/       # Simulation core: simulate.ts, formulas, milestones, placement helpers
 ├── events/       # Event types, defaults, per-kind logic
 ├── components/
 │   ├── Layout/   # AppShell, KPI strip, timeline list
@@ -88,7 +88,7 @@ src/
 ├── i18n/         # en + pt-BR locale JSON
 ├── lib/          # localStorage persistence
 └── utils/        # Formatting, colors, timeline coordinates
-docs/             # Architecture blueprint + phase 2 feature specs
+docs/             # Architecture blueprint + development/performance records
 e2e/              # Playwright specs
 ```
 
@@ -111,16 +111,3 @@ Key implementation notes:
 npm test
 npm run test:e2e
 ```
-
-## Roadmap / current status
-
-Core product (stages 0–9 of the dev plan) is complete. Phase 2 items are specified in `docs/phase2/` and pending implementation:
-
-- Monte Carlo probability cone (`docs/phase2/01-monte-carlo.md`)
-- Milestone timeline bar & graph markers
-- Scenario comparison overlays (`docs/phase2/02-scenario-comparison.md`)
-- What-if scrubber (`docs/phase2/03-what-if-scrubber.md`)
-- Export & share (PNG + shareable URL, `docs/phase2/05-export-share.md`)
-- Cash-flow sparklines (`docs/phase2/06-sparklines.md`)
-
-Additional working docs: [graph UX batch](docs/graph-ux-implementation-batch.md) and [investment form enhancements](docs/investment-form-enhancements.md).

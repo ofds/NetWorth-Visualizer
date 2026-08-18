@@ -158,9 +158,9 @@ mousemove allocations and React re-renders within a month.
 ### 3.10 Bundle — `vite.config.ts`
 Vendor code-splitting groups (react / motion / d3 / dnd / i18n) for cacheability.
 Confirmed d3 is already tree-shaken and unused modules (`TimelineList.tsx`,
-`events/*` re-export stubs) are unreachable (not bundled). pt-BR locale lazy-load
-was evaluated and rejected: it would flash English on first pt-BR boot for a ~6 kB
-gzip saving.
+`events/*` re-export stubs) are unreachable (not bundled). Both locale files are
+bundled statically — lazy-loading pt-BR would flash English on first pt-BR boot
+for a ~6 kB gzip saving.
 
 ---
 
@@ -219,21 +219,7 @@ vendor chunks cache-stable across deploys.
 - **No memoization noise** — only the demonstrated hot paths got caching
   (multipliers, drag preview, live sim, hover, ruler map).
 
-## 6. Remaining opportunities (intentionally not done)
-
-- **Splitting the graph into stable SVG layers** to avoid the full teardown/rebuild
-  per marker-drag commit. Measured rebuild is ~10 ms even for the 301-event stress
-  scenario (3 rebuilds per slow drag), so the payoff is small and the refactor risk
-  on the 3300-line component is high.
-- **`investmentShortfallStreakIds` / `investmentIdsOrderedForAssetStack`**
-  (O(months × investments) per graph commit) — a few ms on stress; micro-level.
-- **Lazy pt-BR locale** (~6 kB gzip) — rejected: language flash on first switch.
-- **framer-motion (124 kB)** — genuinely used for layout animation; removing would
-  degrade UI quality for a size-only gain.
-- **Monte Carlo worker groundwork** — no Monte Carlo feature exists yet; a worker
-  should be designed when the feature lands, not speculatively now.
-
-## 7. Verification
+## 6. Verification
 
 - `tsc -b` — clean.
 - `npm run test` — **156 passed / 1 skipped** (21 files), including the 10-test

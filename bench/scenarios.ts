@@ -87,7 +87,6 @@ export function buildScenario(
         monthlyContribution: recurring ? 100 + Math.floor(rnd() * 2000) : 0,
         expectedAnnualReturn: 0.04 + rnd() * 0.1,
         assetClass: 'stocks',
-        showVolatilityCone: false,
         durationYears: duration / 12,
       })
     } else if (kindRoll < 0.65) {

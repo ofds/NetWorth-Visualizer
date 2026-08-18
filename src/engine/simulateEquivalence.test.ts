@@ -61,7 +61,6 @@ function randomEvents(seed: number, count: number, horizon: number): FinancialEv
         monthlyContribution: recurring ? Math.floor(rnd() * 3000) : 0,
         expectedAnnualReturn: rnd() * 0.2,
         assetClass: 'stocks',
-        showVolatilityCone: false,
         durationYears: null,
       })
     } else if (kindRoll < 0.6) {
@@ -340,7 +339,6 @@ describe('simulate equivalence (optimized vs frozen reference)', () => {
         monthlyContribution: 0,
         expectedAnnualReturn: 0.05,
         assetClass: 'custom',
-        showVolatilityCone: false,
         durationYears: null,
       },
       {
@@ -394,7 +392,6 @@ describe('simulate equivalence (optimized vs frozen reference)', () => {
         monthlyContribution: 100,
         expectedAnnualReturn: 0.06,
         assetClass: 'stocks',
-        showVolatilityCone: false,
         durationYears: null,
       },
       {
@@ -408,7 +405,6 @@ describe('simulate equivalence (optimized vs frozen reference)', () => {
         monthlyContribution: 0,
         expectedAnnualReturn: 0.1,
         assetClass: 'bonds',
-        showVolatilityCone: false,
         durationYears: null,
       },
       {

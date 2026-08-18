@@ -38,7 +38,6 @@ function uniqueEventId(existingIds: Set<string>, kind: FinancialEvent['kind']): 
 export type GraphSettingsState = {
   showRealValues: boolean
   showLinearReference: boolean
-  showMonteCarlo: boolean
   showAssetBreakdown: boolean
   /** Temporary overlay: recession-style macro (no change to saved events). */
   stressTestActive: boolean
@@ -123,7 +122,6 @@ type AppActions = {
 export const DEFAULT_GRAPH_SETTINGS: GraphSettingsState = {
   showRealValues: false,
   showLinearReference: false,
-  showMonteCarlo: false,
   showAssetBreakdown: false,
   stressTestActive: false,
   showLifeTimeline: true,

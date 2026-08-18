@@ -44,7 +44,7 @@ On smaller screens, the carousel moves to a bottom sheet, and the form becomes a
 
 ---
 
-## 3. The Five Initial Events
+## 3. The Six Event Types
 
 Each event has a distinct **icon**, **color**, **form schema**, and **calculation impact**.
 
@@ -95,7 +95,6 @@ Each event has a distinct **icon**, **color**, **form schema**, and **calculatio
 | Monthly contribution | currency | For recurring |
 | Expected annual return | percentage | Pre-filled based on asset class |
 | Asset class hint | select | Stocks / Bonds / Real Estate / Crypto / Custom |
-| Volatility display | toggle | Show Monte Carlo cone or smooth line |
 | Duration | years | Or "ongoing" |
 
 **Calculation impact:** This is the **compound growth hero**. The monthly compounding formula drives the exponential curve. When combined with recurring contributions, the graph shows the hockey stick. This event type should produce the most visually dramatic changes on the graph.
@@ -133,6 +132,21 @@ Each event has a distinct **icon**, **color**, **form schema**, and **calculatio
 | Severity | slider 1-10 | Quick visual indicator |
 
 **Calculation impact:** This is a **global modifier**. It doesn't add assets or liabilities — it bends every other event's math. High inflation erodes purchasing power (visible as the "real" net worth line flattening). A crash applies a negative modifier to all investment returns during its window. This creates the dramatic dips and recoveries that make compound growth storytelling powerful.
+
+---
+
+### 3.6 — 🎁 Windfall Event
+> Models one-time injections of capital — inheritance, gifts, legal settlements.
+
+**Form Fields:**
+| Field | Type | Notes |
+|---|---|---|
+| Event name | text | "Inheritance", "Gift" |
+| Amount | currency | One-time nominal credit |
+
+**Calculation impact:** Credits the savings pool (reserve) once on the event's start
+month — before any asset down payment in the same month. Used to model large inflows
+that fund purchases or investments.
 
 ---
 
@@ -356,7 +370,6 @@ This allows the "real vs nominal" toggle on the graph.
 | **Projection horizon** | Up to 50 years (600 steps) | Covers full career + retirement |
 | **Recalculation trigger** | On every event add/remove/edit | Should feel instant (<16ms for 600 steps) |
 | **Deterministic mode** | Default | Single projected line, no randomness |
-| **Monte Carlo mode** | Optional toggle | Run 100-500 simulations with randomized returns to show probability cone |
 | **Inflation handling** | Cumulative multiplier | Expenses grow with inflation; assets grow at nominal rates; real net worth shown as separate toggle |
 | **Event overlap** | Fully supported | Multiple careers, investments, loans can be active simultaneously |
 | **Event ordering** | Sorted by start month | Processed sequentially within each month |
@@ -369,7 +382,7 @@ The engine must be **blazingly fast** because it re-runs on every user interacti
 - 600 months × 5-10 active events = ~6,000 operations per simulation → trivial for modern JS.
 - Use **typed arrays** (`Float64Array`) for the snapshot time series to optimize memory layout and charting.
 - Avoid object allocation in the hot loop — pre-allocate the snapshot array.
-- If Monte Carlo is enabled (500 runs × 600 months), consider using a **Web Worker** to avoid blocking the UI thread. Render the deterministic line first, then stream in the probability cone as the worker completes.
+- The engine compiles the event list into an indexed plan once per run (activation/deactivation schedules, pre-resolved investment rows), so the monthly loop is proportional to what changed — see `docs/performance-optimization-report.md` for measurements.
 
 ---
 
@@ -377,9 +390,7 @@ The engine must be **blazingly fast** because it re-runs on every user interacti
 
 ### 6.1 — Chart Library Choice
 
-**Recommended: D3.js** (for maximum control and beauty) or **Recharts** (for faster development within React).
-
-For the level of visual polish described, D3 is the better choice. It allows:
+The graph is built with **D3.js** for maximum control and beauty. It allows:
 - Custom curve interpolation (smooth, organic-feeling growth curves)
 - Animated transitions when events are added/removed
 - Custom event markers on the timeline
@@ -398,7 +409,6 @@ Layer 5: Real net worth line (dashed, toggle-able, shows inflation erosion)
 Layer 6: Event markers (icons on the timeline with vertical indicator lines)
 Layer 7: Milestone annotations ("First $100K", "$1M net worth", "Debt free")
 Layer 8: Interactive cursor (vertical line following mouse, showing values at that date)
-Layer 9: Monte Carlo probability cone (translucent band, if enabled)
 ```
 
 ### 6.3 — Visual Features
@@ -443,8 +453,8 @@ interface AppState {
   graphSettings: {
     showRealValues: boolean;           // Inflation-adjusted toggle
     showLinearReference: boolean;      // Show linear growth comparison
-    showMonteCarlo: boolean;           // Probability cone
     showAssetBreakdown: boolean;       // Stacked area vs single line
+    stressTestActive: boolean;         // Temporary recession overlay (no saved events)
     zoomRange: [number, number];       // Visible month range
   };
 }
@@ -485,8 +495,9 @@ src/
 ├── engine/
 │   ├── simulate.ts            # Core simulation loop
 │   ├── formulas.ts            # Compound growth, amortization, inflation
-│   ├── monteCarlo.ts          # Optional probability simulations (Web Worker)
-│   └── milestones.ts          # Auto-detect milestone crossings
+│   ├── milestones.ts          # Auto-detect milestone crossings
+│   ├── assetPlacement.ts      # Down-payment feasibility (reserve constraints)
+│   └── investmentPlacement.ts # Pool-funding feasibility (shortfall constraints)
 │
 ├── events/
 │   ├── types.ts               # Event type definitions & schemas
@@ -585,20 +596,7 @@ src/
 
 ---
 
-## 11. Advanced Features (Phase 2)
-
-Once the core is solid, these elevate the experience:
-
-- **Scenario comparison**: Save multiple event configurations as "scenarios" and overlay their curves (optimistic vs pessimistic vs baseline).
-- **"What-if" scrubber**: A slider that lets you drag a single variable (e.g., investment return rate) and watch the entire curve bend in real time.
-- **Milestone timeline**: A secondary horizontal bar below the graph showing when each milestone is hit (debt-free, first $100K, retirement ready, etc.).
-- **Export & share**: Generate a shareable image or PDF of the projection with key stats.
-- **Inflation toggle**: One-click switch between nominal and real (inflation-adjusted) values. The visual "deflation" of the curve is a powerful teaching tool.
-- **Income vs expenses sparkline**: Small sparklines in the form area showing monthly cash flow over time.
-
----
-
-## 12. Design Direction Notes
+## 11. Design Direction Notes
 
 ### Aesthetic: "Financial Observatory"
 The app should feel like looking through a telescope at your financial future. Dark background (deep navy / charcoal), glowing curves, subtle grid lines, high-contrast data. Think Bloomberg terminal meets Apple — data-dense but elegant.
@@ -617,31 +615,27 @@ The single most important visual: when a user adds an investment event with recu
 
 ---
 
-## 13. Implementation Phases
+## 12. Implementation Phases (as built)
 
-### Phase 1 — MVP (Single-file prototype)
-Build the entire app as a single React component to validate the concept:
-- Basic two-column layout
-- One event type (Investment) fully functional
-- Simple line chart (Recharts) showing compound growth
-- Click-to-place (simplified drag)
+### Phase 1 — MVP vertical slice
+- Two-column layout + carousel event picker
+- Investment event end-to-end (form → timeline → simulation → chart)
+- D3 line chart of net worth vs month
 - Core calculation engine
 
-### Phase 2 — Full Event System
-- All five event types with forms
-- Full drag-and-drop to timeline
-- D3-based graph with all layers
-- Event markers and interactions
-- Macro environment modifier
+### Phase 2 — Full event system
+- All six event types (career, asset/liability, investment, life, macro, windfall) with dynamic forms
+- Full drag-and-drop to timeline (carousel → graph; marker reposition; delete)
+- D3 graph with stacked asset breakdown, markers, tooltips, milestone annotations
+- Macro environment modifier (inflation, market returns, pool yield)
 
-### Phase 3 — Polish & Delight
-- Animated curve transitions
-- Milestone celebrations
-- Monte Carlo probability cones
-- Scenario comparison
-- localStorage persistence
-- Mobile responsive layout
+### Phase 3 — Polish & delight
+- Framer Motion transitions (graph card, carousel, mobile sheet)
+- Milestone chips + milestone lines on the graph; income-gap shading
+- Real/nominal toggle, linear reference, stress-test overlay, ghost curve
+- Savings-pool model with shortfall badges; life-timeline ruler; zoom/pan brush
+- localStorage persistence; bilingual UI (en + pt-BR); responsive mobile layout
 
 ---
 
-*This document is a living blueprint. Each section can be expanded into detailed implementation specs as development progresses.*
+*This document describes the current implementation.*

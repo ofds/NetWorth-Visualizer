@@ -33,7 +33,6 @@ describe('useAppStore', () => {
       monthlyContribution: 100,
       expectedAnnualReturn: 0.07,
       assetClass: 'stocks',
-      showVolatilityCone: false,
       durationYears: 20,
     }
     useAppStore.getState().setEvents([inv])
@@ -44,7 +43,7 @@ describe('useAppStore', () => {
   it('merges graph settings', () => {
     useAppStore.getState().patchGraphSettings({ showRealValues: true })
     expect(useAppStore.getState().graphSettings.showRealValues).toBe(true)
-    expect(useAppStore.getState().graphSettings.showMonteCarlo).toBe(false)
+    expect(useAppStore.getState().graphSettings.showAssetBreakdown).toBe(false)
   })
 
   it('stores chart X zoom range on graphSettings', () => {
@@ -76,7 +75,6 @@ describe('useAppStore', () => {
       monthlyContribution: 0,
       expectedAnnualReturn: 0,
       assetClass: 'stocks',
-      showVolatilityCone: false,
       durationYears: null,
     }
     useAppStore.getState().setEvents([career, inv])
@@ -97,7 +95,6 @@ describe('useAppStore', () => {
       monthlyContribution: 0,
       expectedAnnualReturn: 0,
       assetClass: 'stocks',
-      showVolatilityCone: false,
       durationYears: null,
     }
     useAppStore.getState().addEvent(base)
@@ -121,7 +118,6 @@ describe('useAppStore', () => {
       monthlyContribution: 0,
       expectedAnnualReturn: 0,
       assetClass: 'stocks',
-      showVolatilityCone: false,
       durationYears: null,
     }
     const b: InvestmentEvent = { ...a, id: 'b', name: 'B', startMonth: 12 }
@@ -144,7 +140,6 @@ describe('useAppStore', () => {
       monthlyContribution: 0,
       expectedAnnualReturn: 0,
       assetClass: 'stocks',
-      showVolatilityCone: false,
       durationYears: null,
     }
     useAppStore.getState().setEvents([dup, { ...dup, name: 'Y' }])
@@ -169,7 +164,6 @@ describe('useAppStore', () => {
       monthlyContribution: 0,
       expectedAnnualReturn: 0.06,
       assetClass: 'stocks',
-      showVolatilityCone: false,
       durationYears: null,
     }
     useAppStore.getState().setEvents([career])
@@ -204,7 +198,6 @@ describe('useAppStore', () => {
       monthlyContribution: 100,
       expectedAnnualReturn: 0.05,
       assetClass: 'stocks',
-      showVolatilityCone: false,
       durationYears: null,
     }
     useAppStore.getState().setEvents([])
@@ -232,7 +225,6 @@ describe('useAppStore', () => {
       monthlyContribution: 0,
       expectedAnnualReturn: 0,
       assetClass: 'stocks',
-      showVolatilityCone: false,
       durationYears: null,
     }
     useAppStore.getState().setDraggingDraft(inv)

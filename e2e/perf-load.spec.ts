@@ -10,7 +10,7 @@ test('measure load with large scenario', async ({ page }) => {
   const raw = readFileSync(path.join(SPEC_DIR, '..', 'bench', 'fixtures', 'large.json'), 'utf8')
   const fixture = JSON.parse(raw)
   await page.addInitScript(({ key, events, months }) => {
-    localStorage.setItem(key, JSON.stringify({ events, projectionYears: Math.round(months / 12), currency: 'USD', lang: 'en', graphSettings: { showRealValues: false, showLinearReference: false, showMonteCarlo: false, showAssetBreakdown: false, stressTestActive: false, showLifeTimeline: true, graphTooltipOffset: {x:0,y:0}, graphTooltipWidth: 260, graphTooltipHeight: 320, zoomRange: null } }))
+    localStorage.setItem(key, JSON.stringify({ events, projectionYears: Math.round(months / 12), currency: 'USD', lang: 'en', graphSettings: { showRealValues: false, showLinearReference: false, showAssetBreakdown: false, stressTestActive: false, showLifeTimeline: true, graphTooltipOffset: {x:0,y:0}, graphTooltipWidth: 260, graphTooltipHeight: 320, zoomRange: null } }))
   }, { key: NWV_STORAGE_KEY, events: fixture.events, months: fixture.months })
   const t0 = Date.now()
   await page.goto('/')
